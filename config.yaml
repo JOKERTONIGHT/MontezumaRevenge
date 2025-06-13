@@ -1,0 +1,72 @@
+# Montezuma's Revenge RL Configuration
+
+# 环境配置
+environment:
+  name: "MontezumaRevengeNoFrameskip-v4"
+  frame_stack: 4
+  frame_skip: 4
+  max_episode_steps: 18000
+  no_op_max: 30
+  fire_first: true
+
+# DQN基础配置
+dqn:
+  learning_rate: 0.0001
+  batch_size: 32
+  gamma: 0.99
+  eps_start: 1.0
+  eps_end: 0.01
+  eps_decay: 1000000
+  target_update_frequency: 10000
+  memory_size: 1000000
+  learning_starts: 50000
+  train_frequency: 4
+
+# RND配置
+rnd:
+  intrinsic_reward_coef: 1.0
+  predictor_lr: 0.0001
+  target_lr: 0.0001
+  update_frequency: 4
+  normalize_intrinsic_reward: true
+  intrinsic_reward_clip: 5.0
+
+# ICM配置  
+icm:
+  intrinsic_reward_coef: 0.01
+  forward_loss_coef: 0.2
+  inverse_loss_coef: 0.8
+  feature_dim: 288
+  learning_rate: 0.001
+
+# 训练配置
+training:
+  total_timesteps: 50000000
+  eval_frequency: 100000
+  eval_episodes: 10
+  save_frequency: 500000
+  log_frequency: 10000
+  render_eval: false
+
+# 网络配置
+network:
+  conv_layers:
+    - [32, 8, 4]
+    - [64, 4, 2] 
+    - [64, 3, 1]
+  hidden_dim: 512
+  dueling: true
+
+# 实验配置
+experiment:
+  seed: 42
+  device: "cuda"
+  num_runs: 3
+  save_replay_buffer: false
+  
+# 日志配置
+logging:
+  tensorboard: true
+  wandb: false
+  console_log_level: "INFO"
+  file_log_level: "DEBUG"
