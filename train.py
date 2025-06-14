@@ -19,11 +19,10 @@ from utils import (
 from agents import create_agent
 
 
-def setup_logging(log_dir: str, console_level: str = "INFO", file_level: str = "DEBUG"):
-    """设置日志"""
+def setup_logging(log_dir: str):
+    """设置训练日志"""
     os.makedirs(log_dir, exist_ok=True)
     
-    # 创建日志器
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
     
@@ -33,20 +32,17 @@ def setup_logging(log_dir: str, console_level: str = "INFO", file_level: str = "
     
     # 控制台处理器
     console_handler = logging.StreamHandler()
-    console_handler.setLevel(getattr(logging, console_level.upper()))
-    console_formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    )
+    console_handler.setLevel(logging.INFO)
+    console_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
     console_handler.setFormatter(console_formatter)
-    logger.addHandler(console_handler)
     
     # 文件处理器
     file_handler = logging.FileHandler(os.path.join(log_dir, 'training.log'))
-    file_handler.setLevel(getattr(logging, file_level.upper()))
-    file_formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(funcName)s:%(lineno)d - %(message)s'
-    )
+    file_handler.setLevel(logging.DEBUG)
+    file_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(funcName)s - %(message)s')
     file_handler.setFormatter(file_formatter)
+    
+    logger.addHandler(console_handler)
     logger.addHandler(file_handler)
     
     return logger
@@ -75,41 +71,26 @@ def train_agent(config: Config, args):
     # 设备设置
     device = get_device(config)
     
-    # 设置日志
+    # 设置日志目录和记录器
     log_dir = os.path.join(args.log_dir, f"{args.agent}_{int(time.time())}")
-    logger = setup_logging(log_dir, 
-                          config.get('logging.console_log_level', 'INFO'),
-                          config.get('logging.file_log_level', 'DEBUG'))
+    logger = setup_logging(log_dir)
     
     logger.info(f"开始训练 {args.agent} 智能体")
-    logger.info(f"使用设备: {device}")
-    logger.info(f"随机种子: {seed}")
     
     # 创建环境
-    env = make_atari_env(config.get('environment.name'), config, seed)
-    eval_env = make_atari_env(config.get('environment.name'), config, seed + 1)
-    
-    logger.info(f"环境: {config.get('environment.name')}")
-    logger.info(f"动作空间大小: {env.action_space.n}")
-    logger.info(f"观察空间形状: {env.observation_space.shape}")
+    env_name = config.get('environment.name', 'MontezumaRevengeNoFrameskip-v4')
+    env = make_atari_env(env_name, config, seed)
+    eval_env = make_atari_env(env_name, config, seed + 1)
     
     # 创建智能体
     agent = create_agent(args.agent, config, device, env.action_space.n)
-    logger.info(f"智能体创建完成: {type(agent).__name__}")
     
     # 创建经验回放缓冲区
-    state_shape = env.observation_space.shape
-    replay_buffer = create_replay_buffer(config, device, state_shape)
-    logger.info(f"经验回放缓冲区: {type(replay_buffer).__name__}")
+    replay_buffer = create_replay_buffer(config, device, env.observation_space.shape)
     
-    # 创建可视化器
+    # 创建可视化工具
     visualizer = TrainingVisualizer(os.path.join(log_dir, 'plots'))
-    
-    # TensorBoard
-    if config.get('logging.tensorboard', True):
-        tb_writer = SummaryWriter(os.path.join(log_dir, 'tensorboard'))
-    else:
-        tb_writer = None
+    tb_writer = SummaryWriter(os.path.join(log_dir, 'tensorboard')) if config.get('logging.tensorboard', True) else None
     
     # 训练参数
     total_timesteps = config.get('training.total_timesteps', 50000000)
@@ -285,19 +266,17 @@ def train_agent(config: Config, args):
 
 
 def main():
-    """主函数"""
-    # 解析命令行参数
+    """训练执行入口"""
+    # 解析命令行参数并加载配置
     args = parse_args()
-    
-    # 加载配置
     config = Config(args.config)
     config = merge_args_with_config(args, config)
     
-    # 创建输出目录
+    # 创建必要目录
     os.makedirs(args.log_dir, exist_ok=True)
     os.makedirs(args.model_dir, exist_ok=True)
     
-    # 开始训练
+    # 执行训练
     try:
         final_metrics = train_agent(config, args)
         print(f"\n训练完成! 最终平均奖励: {final_metrics.get('eval_mean_reward', 0):.2f}")

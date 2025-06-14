@@ -1,0 +1,24 @@
+[project]
+name = "zuma"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "ale-py>=0.8.0",
+    "argparse>=1.4.0",
+    "autorom>=0.6.1",
+    "gymnasium[accept-rom-license,atari]>=0.28.0",
+    "logging>=0.4.9.6",
+    "matplotlib>=3.5.0",
+    "numpy>=1.21.0",
+    "opencv-python>=4.5.0",
+    "pillow>=8.3.0",
+    "pyyaml>=6.0",
+    "scipy>=1.7.0",
+    "seaborn>=0.11.0",
+    "tensorboard>=2.7.0",
+    "torch>=1.9.0",
+    "torchvision>=0.10.0",
+    "tqdm>=4.62.0",
+]

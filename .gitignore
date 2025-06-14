@@ -1,0 +1,56 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+.env
+.venv/
+env/
+venv/
+
+# Trained models and checkpoints (not model code)
+*.pt
+*.pth
+*.ckpt
+saved_models/
+
+# Training outputs and logs
+logs/
+outputs/
+results/
+plots/
+*.log
+
+# TensorBoard logs
+runs/
+tb_logs/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+temp/
+
+# Data files (if large)
+data/*.zip
+data/*.tar.gz
+
+# Experiment tracking
+wandb/
+
+# Coverage and testing
+.coverage
+.pytest_cache/

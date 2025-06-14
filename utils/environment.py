@@ -203,8 +203,39 @@ class ScaledFloatFrame(gym.ObservationWrapper):
         return np.array(observation).astype(np.float32) / 255.0
 
 
+class TransposeFrame(gym.ObservationWrapper):
+    """将观察值从(H, W, C)转换为(C, H, W)格式"""
+    
+    def __init__(self, env):
+        super().__init__(env)
+        obs_shape = env.observation_space.shape
+        
+        # 检查是否已经是(C, H, W)格式
+        if len(obs_shape) == 3 and obs_shape[0] <= 4 and obs_shape[1] == obs_shape[2]:
+            # 已经是(C, H, W)格式，不需要转置
+            self.observation_space = env.observation_space
+            self.need_transpose = False
+        else:
+            # 需要从(H, W, C)转换为(C, H, W)
+            self.observation_space = gym.spaces.Box(
+                low=0, high=1, 
+                shape=(obs_shape[2], obs_shape[0], obs_shape[1]), 
+                dtype=env.observation_space.dtype
+            )
+            self.need_transpose = True
+
+    def observation(self, observation):
+        if self.need_transpose:
+            return np.transpose(observation, (2, 0, 1))
+        else:
+            return observation
+
+
 def make_atari_env(env_name, config, seed=None):
     """创建Atari环境"""
+    # 确保导入ale_py以注册Atari环境
+    import ale_py
+    
     env = gym.make(env_name)
     
     if seed is not None:
@@ -222,6 +253,8 @@ def make_atari_env(env_name, config, seed=None):
     env = WarpFrame(env)
     env = FrameStack(env, config.get('environment.frame_stack', 4))
     env = ScaledFloatFrame(env)
+    env = TransposeFrame(env)  # 转换为(C, H, W)格式
+    env = TransposeFrame(env)
     
     # 设置最大步数
     max_steps = config.get('environment.max_episode_steps', 18000)

@@ -9,8 +9,9 @@ import logging
 import time
 import numpy as np
 import torch
-from typing import Dict, List
+import json
 import matplotlib.pyplot as plt
+from typing import Dict, List
 
 from utils import (
     Config, set_random_seed, get_device, make_atari_env,
@@ -19,17 +20,16 @@ from utils import (
 from agents import create_agent
 
 
-def setup_evaluation_logging():
+def setup_logging():
     """设置评估日志"""
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        format='%(asctime)s - %(levelname)s - %(message)s'
     )
     return logging.getLogger("Evaluation")
 
 
-def evaluate_agent(agent, env, num_episodes: int = 100, render: bool = False, 
-                  save_video: bool = False, video_dir: str = None) -> Dict:
+def evaluate_agent(agent, env, num_episodes: int = 10, render: bool = False) -> Dict:
     """评估智能体性能"""
     logger = logging.getLogger("Evaluation")
     
@@ -80,9 +80,7 @@ def evaluate_agent(agent, env, num_episodes: int = 100, render: bool = False,
         episode_times.append(episode_time)
         state_visits.append(episode_states)
         
-        if episode % 10 == 0:
-            logger.info(f"Episode {episode}: 奖励 = {episode_reward:.1f}, "
-                       f"步数 = {episode_step}, 时间 = {episode_time:.1f}s")
+        logger.info(f"Episode {episode+1}/{num_episodes}: 奖励 = {episode_reward:.1f}, 步数 = {episode_step}")
     
     # 计算统计信息
     results = {
@@ -273,7 +271,7 @@ def compare_agents(agent_results: Dict[str, Dict], save_path: str = None):
 
 
 def main():
-    """主函数"""
+    """评估执行入口"""
     parser = argparse.ArgumentParser(description='评估强化学习智能体')
     parser.add_argument('--model_path', type=str, required=True,
                        help='模型文件路径')
@@ -281,23 +279,19 @@ def main():
                        required=True, help='智能体类型')
     parser.add_argument('--config', type=str, default='config.yaml',
                        help='配置文件路径')
-    parser.add_argument('--env', type=str, default='MontezumaRevengeNoFrameskip-v4',
-                       help='环境名称')
-    parser.add_argument('--num_episodes', type=int, default=100,
+    parser.add_argument('--num_episodes', type=int, default=10,
                        help='评估局数')
     parser.add_argument('--render', action='store_true',
                        help='渲染环境')
-    parser.add_argument('--seed', type=int, default=42,
-                       help='随机种子')
-    parser.add_argument('--output_dir', type=str, default='evaluation_results',
-                       help='输出目录')
+    parser.add_argument('--output_dir', type=str, default='results/evaluations',
+                       help='结果输出目录')
     parser.add_argument('--compare_models', type=str, nargs='+',
                        help='比较多个模型（提供多个模型路径）')
     
     args = parser.parse_args()
     
     # 设置日志
-    logger = setup_evaluation_logging()
+    logger = setup_logging()
     
     # 创建输出目录
     os.makedirs(args.output_dir, exist_ok=True)

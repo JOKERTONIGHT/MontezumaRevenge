@@ -1,6 +1,6 @@
 """
 演示脚本
-快速演示训练好的智能体玩蒙特祖玛的复仇
+快速演示训练好的智能体玩蒙特祖玛的复仇游戏
 """
 
 import argparse
@@ -9,15 +9,25 @@ import numpy as np
 import torch
 import cv2
 import os
+import logging
 
 from utils import Config, set_random_seed, get_device, make_atari_env
 from agents import create_agent
 
 
+def setup_logging():
+    """设置日志"""
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s'
+    )
+    return logging.getLogger("Demo")
+
+
 def demo_agent(agent, env, num_episodes: int = 3, render: bool = True, 
                save_gif: bool = False, gif_path: str = None):
     """演示智能体游戏过程"""
-    
+    logger = logging.getLogger("Demo")
     frames = []
     
     for episode in range(num_episodes):
@@ -205,7 +215,7 @@ def analyze_agent_behavior(agent, env, num_steps: int = 1000):
 
 
 def main():
-    """主函数"""
+    """演示入口函数"""
     parser = argparse.ArgumentParser(description='演示强化学习智能体')
     parser.add_argument('--model_path', type=str, required=True,
                        help='模型文件路径')
@@ -213,22 +223,14 @@ def main():
                        required=True, help='智能体类型')
     parser.add_argument('--config', type=str, default='config.yaml',
                        help='配置文件路径')
-    parser.add_argument('--env', type=str, default='MontezumaRevengeNoFrameskip-v4',
-                       help='环境名称')
     parser.add_argument('--episodes', type=int, default=3,
                        help='演示局数')
     parser.add_argument('--no-render', action='store_true',
                        help='不渲染画面')
-    parser.add_argument('--interactive', action='store_true',
-                       help='交互式演示模式')
-    parser.add_argument('--analyze', action='store_true',
-                       help='分析智能体行为')
     parser.add_argument('--save_gif', action='store_true',
                        help='保存游戏录像为GIF')
-    parser.add_argument('--gif_path', type=str, default='demo.gif',
+    parser.add_argument('--gif_path', type=str, default='results/demo.gif',
                        help='GIF保存路径')
-    parser.add_argument('--seed', type=int, default=42,
-                       help='随机种子')
     
     args = parser.parse_args()
     
