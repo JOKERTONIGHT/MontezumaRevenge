@@ -219,7 +219,12 @@ class ICM:
     
     def load(self, filepath: str):
         """加载模型"""
-        checkpoint = torch.load(filepath, map_location=self.device)
+        try:
+            # 首先尝试安全加载
+            checkpoint = torch.load(filepath, map_location=self.device, weights_only=True)
+        except Exception:
+            # 如果安全加载失败，使用兼容模式
+            checkpoint = torch.load(filepath, map_location=self.device, weights_only=False)
         
         self.feature_network.load_state_dict(checkpoint['feature_network_state_dict'])
         self.inverse_model.load_state_dict(checkpoint['inverse_model_state_dict'])

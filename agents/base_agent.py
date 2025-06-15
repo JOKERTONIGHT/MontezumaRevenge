@@ -146,7 +146,13 @@ class BaseAgent(ABC):
     
     def load(self, filepath: str):
         """加载模型"""
-        checkpoint = torch.load(filepath, map_location=self.device)
+        try:
+            # 首先尝试安全加载（仅权重）
+            checkpoint = torch.load(filepath, map_location=self.device, weights_only=True)
+        except Exception as e:
+            # 如果安全加载失败，使用旧方式加载（信任的检查点）
+            self.logger.warning(f"安全加载失败，使用兼容模式加载: {e}")
+            checkpoint = torch.load(filepath, map_location=self.device, weights_only=False)
         
         self.q_network.load_state_dict(checkpoint['q_network_state_dict'])
         self.target_network.load_state_dict(checkpoint['target_network_state_dict'])

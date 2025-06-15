@@ -177,3 +177,37 @@ zuma/
 ├── config.yaml            # 配置文件(环境和算法参数)
 └── requirements.txt       # 依赖列表
 ```
+
+## 常见问题
+
+### 1. 模型加载错误 (PyTorch 2.6+)
+
+如果遇到`Weights only load failed`错误，这是由于PyTorch 2.6+的安全性更新。项目已更新为兼容模式，会自动处理此问题。
+
+**错误示例**：
+```
+WeightsUnpickler error: Unsupported global: GLOBAL numpy._core.multiarray.scalar
+```
+
+**解决方案**：使用最新版本的代码，已自动处理兼容性问题；且新保存的检查点将能够安全加载。
+
+### 2. 环境不存在错误
+
+如果遇到环境名称错误，请检查配置文件中的环境名称：
+```yaml
+environment:
+  name: "ALE/MontezumaRevenge-v5"  # 根据你的gymnasium版本调整
+```
+
+注意，在此之前，请检查需要使用autorom加载Montezuma's Revenge对应rom文件，这同样可能导致类似报错。
+
+### 3. 继续训练
+
+从检查点继续训练：
+```bash
+python train.py --agent dqn_rnd --resume saved_models/dqn_rnd_step_5500000.pth
+```
+
+注意：
+- 使用主检查点文件（不带`_rnd`后缀）
+- 系统会自动加载对应的RND/ICM检查点
